@@ -198,10 +198,14 @@ func (r *report) snapshot() Report {
 
 	snapshot.Fastest = r.fastest
 	snapshot.Slowest = r.slowest
-	snapshot.ConnMax = r.connLats[0]
-	snapshot.ConnMin = r.connLats[len(r.connLats)-1]
-	snapshot.DnsMax = r.dnsLats[0]
-	snapshot.DnsMin = r.dnsLats[len(r.dnsLats)-1]
+	if len(r.connLats) > 0 {
+		snapshot.ConnMax = r.connLats[0]
+		snapshot.ConnMin = r.connLats[len(r.connLats)-1]
+	}
+	if len(r.dnsLats) > 0 {
+		snapshot.DnsMax = r.dnsLats[0]
+		snapshot.DnsMin = r.dnsLats[len(r.dnsLats)-1]
+	}
 	snapshot.ReqMax = r.reqLats[0]
 	snapshot.ReqMin = r.reqLats[len(r.reqLats)-1]
 	snapshot.DelayMax = r.delayLats[0]
