@@ -244,14 +244,10 @@ func (r *report) histogram() []Bucket {
 	}
 	buckets[bc] = r.slowest
 	var bi int
-	var max int
 	for i := 0; i < len(r.lats); {
 		if r.lats[i] <= buckets[bi] {
 			i++
 			counts[bi]++
-			if max < counts[bi] {
-				max = counts[bi]
-			}
 		} else if bi < len(buckets)-1 {
 			bi++
 		}

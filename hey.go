@@ -16,6 +16,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -221,6 +222,11 @@ func main() {
 
 	req.Header = header
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	req = req.WithContext(ctx)
+
 	w := &requester.Work{
 		Request:            req,
 		RequestBody:        bodyAll,
@@ -239,17 +245,18 @@ func main() {
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
+
 	go func() {
 		<-c
-		w.Stop()
+		cancel()
 	}()
 	if dur > 0 {
 		go func() {
 			time.Sleep(dur)
-			w.Stop()
+			cancel()
 		}()
 	}
-	w.Run()
+	w.Run(ctx)
 }
 
 func errAndExit(msg string) {

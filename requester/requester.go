@@ -29,10 +29,9 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/net/http2"
-
 	"go.melnyk.org/cvt"
 	"go.melnyk.org/spinner"
+	"golang.org/x/net/http2"
 )
 
 // Max size of the buffer of result channel.
@@ -116,17 +115,16 @@ func (b *Work) writer() io.Writer {
 func (b *Work) Init() {
 	b.initOnce.Do(func() {
 		b.results = make(chan *result, min(b.C*1000, maxResult))
-		b.stopCh = make(chan struct{}, b.C)
 	})
 }
 
 // Run makes all the requests, prints the summary. It blocks until
 // all work is done.
-func (b *Work) Run() {
-	ctx, cancel := context.WithCancel(context.Background())
-	spinner := spinner.NewSpinner(ctx, spinner.WithStyle(spinner.StyleBars))
+func (b *Work) Run(ctx context.Context) {
+	sctx, cancel := context.WithCancel(ctx)
+	spinner := spinner.NewSpinner(sctx, spinner.WithStyle(spinner.StyleBars))
 	fmt.Printf("%s", cvt.YellowFg)
-	spinner.Process("Testing in progress...")
+	spinner.Process("Testing in progress...\r")
 	b.Init()
 	b.start = now()
 	b.report = newReport(b.writer(), b.results, b.Output, b.N)
@@ -134,20 +132,13 @@ func (b *Work) Run() {
 	go func() {
 		runReporter(b.report)
 	}()
-	b.runWorkers()
+	b.runWorkers(ctx)
 	cancel()
 	fmt.Printf("\r%s%s\r", cvt.EraseLine, cvt.ResetColor)
-	b.Finish()
+	b.finish()
 }
 
-func (b *Work) Stop() {
-	// Send stop signal so that workers can stop gracefully.
-	for i := 0; i < b.C; i++ {
-		b.stopCh <- struct{}{}
-	}
-}
-
-func (b *Work) Finish() {
+func (b *Work) finish() {
 	close(b.results)
 	total := now() - b.start
 	// Wait until the reporter is done.
@@ -155,7 +146,7 @@ func (b *Work) Finish() {
 	b.report.finalize(total)
 }
 
-func (b *Work) makeRequest(c *http.Client) {
+func (b *Work) makeRequest(ctx context.Context, c *http.Client) {
 	s := now()
 	var size int64
 	var code int
@@ -217,7 +208,7 @@ func (b *Work) makeRequest(c *http.Client) {
 	}
 }
 
-func (b *Work) runWorker(client *http.Client, n int) {
+func (b *Work) runWorker(ctx context.Context, client *http.Client, n int) {
 	var throttle <-chan time.Time
 	if b.QPS > 0 {
 		throttle = time.Tick(time.Duration(1e6/(b.QPS)) * time.Microsecond)
@@ -228,21 +219,22 @@ func (b *Work) runWorker(client *http.Client, n int) {
 			return http.ErrUseLastResponse
 		}
 	}
+
 	for i := 0; i < n; i++ {
 		// Check if application is stopped. Do not send into a closed channel.
 		select {
-		case <-b.stopCh:
+		case <-ctx.Done():
 			return
 		default:
 			if b.QPS > 0 {
 				<-throttle
 			}
-			b.makeRequest(client)
+			b.makeRequest(ctx, client)
 		}
 	}
 }
 
-func (b *Work) runWorkers() {
+func (b *Work) runWorkers(ctx context.Context) {
 	var wg sync.WaitGroup
 	wg.Add(b.C)
 
@@ -264,12 +256,21 @@ func (b *Work) runWorkers() {
 	client := &http.Client{Transport: tr, Timeout: time.Duration(b.Timeout) * time.Second}
 
 	// Ignore the case where b.N % b.C != 0.
-	for i := 0; i < b.C; i++ {
-		go func() {
-			b.runWorker(client, b.N/b.C)
+	left := b.N
+	for i := 0; i < b.C-1; i++ {
+		n := left / (b.C - i)
+		left = left - n
+		go func(n int) {
+			b.runWorker(ctx, client, n)
 			wg.Done()
-		}()
+		}(n)
 	}
+
+	go func(n int) {
+		b.runWorker(ctx, client, n)
+		wg.Done()
+	}(left)
+
 	wg.Wait()
 }
 
