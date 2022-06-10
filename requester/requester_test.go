@@ -16,6 +16,7 @@ package requester
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -39,7 +40,7 @@ func TestN(t *testing.T) {
 		N:       20,
 		C:       2,
 	}
-	w.Run()
+	w.Run(context.Background())
 	if count != 20 {
 		t.Errorf("Expected to send 20 requests, found %v", count)
 	}
@@ -68,7 +69,7 @@ func TestQps(t *testing.T) {
 		}
 		wg.Done()
 	})
-	go w.Run()
+	go w.Run(context.Background())
 	wg.Wait()
 }
 
@@ -94,7 +95,7 @@ func TestRequest(t *testing.T) {
 		N:       1,
 		C:       1,
 	}
-	w.Run()
+	w.Run(context.Background())
 	if uri != "/" {
 		t.Errorf("Uri is expected to be /, %v is found", uri)
 	}
@@ -127,7 +128,7 @@ func TestBody(t *testing.T) {
 		N:           10,
 		C:           1,
 	}
-	w.Run()
+	w.Run(context.Background())
 	if count != 10 {
 		t.Errorf("Expected to work 10 times, found %v", count)
 	}
