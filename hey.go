@@ -197,9 +197,6 @@ func main() {
 		usageAndExit(err.Error())
 	}
 	req.ContentLength = int64(len(bodyAll))
-	if username != "" || password != "" {
-		req.SetBasicAuth(username, password)
-	}
 
 	// set host header if set
 	if *hostHeader != "" {
@@ -221,6 +218,9 @@ func main() {
 	}
 
 	req.Header = header
+	if username != "" || password != "" {
+		req.SetBasicAuth(username, password)
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

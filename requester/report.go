@@ -96,8 +96,12 @@ func runReporter(r *report) {
 			r.avgRes += res.resDuration.Seconds()
 			if len(r.resLats) < maxRes {
 				r.lats = append(r.lats, res.duration.Seconds())
-				r.connLats = append(r.connLats, res.connDuration.Seconds())
-				r.dnsLats = append(r.dnsLats, res.dnsDuration.Seconds())
+				if res.connDuration > 0 {
+					r.connLats = append(r.connLats, res.connDuration.Seconds())
+				}
+				if res.dnsDuration > 0 {
+					r.dnsLats = append(r.dnsLats, res.dnsDuration.Seconds())
+				}
 				r.reqLats = append(r.reqLats, res.reqDuration.Seconds())
 				r.delayLats = append(r.delayLats, res.delayDuration.Seconds())
 				r.resLats = append(r.resLats, res.resDuration.Seconds())
@@ -117,9 +121,9 @@ func (r *report) finalize(total time.Duration) {
 	r.total = total
 	r.rps = float64(r.numRes) / r.total.Seconds()
 	r.average = r.avgTotal / float64(len(r.lats))
-	r.avgConn = r.avgConn / float64(len(r.lats))
+	r.avgConn = r.avgConn / float64(len(r.connLats))
 	r.avgDelay = r.avgDelay / float64(len(r.lats))
-	r.avgDNS = r.avgDNS / float64(len(r.lats))
+	r.avgDNS = r.avgDNS / float64(len(r.dnsLats))
 	r.avgReq = r.avgReq / float64(len(r.lats))
 	r.avgRes = r.avgRes / float64(len(r.lats))
 	r.print()
@@ -155,8 +159,8 @@ func (r *report) snapshot() Report {
 		ErrorDist:   r.errorDist,
 		NumRes:      r.numRes,
 		Lats:        make([]float64, len(r.lats)),
-		ConnLats:    make([]float64, len(r.lats)),
-		DnsLats:     make([]float64, len(r.lats)),
+		ConnLats:    make([]float64, len(r.connLats)),
+		DnsLats:     make([]float64, len(r.dnsLats)),
 		ReqLats:     make([]float64, len(r.lats)),
 		ResLats:     make([]float64, len(r.lats)),
 		DelayLats:   make([]float64, len(r.lats)),

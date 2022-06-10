@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httptrace"
 	"net/url"
@@ -146,11 +147,11 @@ func (b *Work) finish() {
 }
 
 func (b *Work) makeRequest(ctx context.Context, c *http.Client) {
-	s := now()
 	var size int64
 	var code int
 	var dnsStart, connStart, resStart, reqStart, delayStart time.Duration
 	var dnsDuration, connDuration, resDuration, reqDuration, delayDuration time.Duration
+	var mu sync.Mutex
 	var req *http.Request
 	if b.RequestFunc != nil {
 		req = b.RequestFunc()
@@ -162,7 +163,9 @@ func (b *Work) makeRequest(ctx context.Context, c *http.Client) {
 			dnsStart = now()
 		},
 		DNSDone: func(dnsInfo httptrace.DNSDoneInfo) {
+			mu.Lock()
 			dnsDuration = now() - dnsStart
+			mu.Unlock()
 		},
 		GetConn: func(h string) {
 			connStart = now()
@@ -174,15 +177,22 @@ func (b *Work) makeRequest(ctx context.Context, c *http.Client) {
 			reqStart = now()
 		},
 		WroteRequest: func(w httptrace.WroteRequestInfo) {
-			reqDuration = now() - reqStart
-			delayStart = now()
+			t := now()
+			reqDuration = t - reqStart
+			mu.Lock()
+			delayStart = t
+			mu.Unlock()
 		},
 		GotFirstResponseByte: func() {
-			delayDuration = now() - delayStart
-			resStart = now()
+			t := now()
+			mu.Lock()
+			delayDuration = t - delayStart
+			resStart = t
+			mu.Unlock()
 		},
 	}
 	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
+	s := now()
 	resp, err := c.Do(req)
 	if err == nil {
 		code = resp.StatusCode
@@ -192,6 +202,7 @@ func (b *Work) makeRequest(ctx context.Context, c *http.Client) {
 	t := now()
 	resDuration = t - resStart
 	finish := t - s
+	mu.Lock()
 	b.results <- &result{
 		offset:        s,
 		statusCode:    code,
@@ -204,6 +215,7 @@ func (b *Work) makeRequest(ctx context.Context, c *http.Client) {
 		resDuration:   resDuration,
 		delayDuration: delayDuration,
 	}
+	mu.Unlock()
 }
 
 func (b *Work) runWorker(ctx context.Context, client *http.Client, n int) {
@@ -236,10 +248,15 @@ func (b *Work) runWorkers(ctx context.Context) {
 	var wg sync.WaitGroup
 	wg.Add(b.C)
 
+	hostName, _, err := net.SplitHostPort(b.Request.Host)
+	if err != nil {
+		hostName = b.Request.Host
+	}
+
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
-			ServerName:         b.Request.Host,
+			ServerName:         hostName,
 		},
 		MaxIdleConnsPerHost: min(b.C, maxIdleConn),
 		DisableCompression:  b.DisableCompression,
