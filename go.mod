@@ -1,4 +1,4 @@
-module github.com/rakyll/hey
+module go.melnyk.org/heya
 
 require (
 	go.melnyk.org/cvt v0.0.0-20180815021515-f3949ace0e2f
