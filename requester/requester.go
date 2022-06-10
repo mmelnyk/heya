@@ -98,7 +98,6 @@ type Work struct {
 
 	initOnce sync.Once
 	results  chan *result
-	stopCh   chan struct{}
 	start    time.Duration
 
 	report *report
@@ -186,9 +185,8 @@ func (b *Work) makeRequest(ctx context.Context, c *http.Client) {
 	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
 	resp, err := c.Do(req)
 	if err == nil {
-		size = resp.ContentLength
 		code = resp.StatusCode
-		io.Copy(ioutil.Discard, resp.Body)
+		size, _ = io.Copy(ioutil.Discard, resp.Body)
 		resp.Body.Close()
 	}
 	t := now()
