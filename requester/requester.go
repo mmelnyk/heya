@@ -17,7 +17,9 @@ package requester
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -28,6 +30,9 @@ import (
 	"time"
 
 	"golang.org/x/net/http2"
+
+	"go.melnyk.org/cvt"
+	"go.melnyk.org/spinner"
 )
 
 // Max size of the buffer of result channel.
@@ -118,6 +123,10 @@ func (b *Work) Init() {
 // Run makes all the requests, prints the summary. It blocks until
 // all work is done.
 func (b *Work) Run() {
+	ctx, cancel := context.WithCancel(context.Background())
+	spinner := spinner.NewSpinner(ctx, spinner.WithStyle(spinner.StyleBars))
+	fmt.Printf("%s", cvt.YellowFg)
+	spinner.Process("Testing in progress...")
 	b.Init()
 	b.start = now()
 	b.report = newReport(b.writer(), b.results, b.Output, b.N)
@@ -126,6 +135,8 @@ func (b *Work) Run() {
 		runReporter(b.report)
 	}()
 	b.runWorkers()
+	cancel()
+	fmt.Printf("\r%s%s\r", cvt.EraseLine, cvt.ResetColor)
 	b.Finish()
 }
 
