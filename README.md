@@ -51,8 +51,11 @@ Options:
   -T  Content-type, defaults to "text/html".
   -a  Basic authentication, username:password.
   -x  HTTP Proxy address as host:port.
+  -k  Allow insecure server connections when using TLS.
   -h2 Enable HTTP/2.
 
+  -tls-session-resume   Enable TLS session resumption.
+  
   -host	HTTP Host header.
 
   -disable-compression  Disable compression.
