@@ -30,7 +30,7 @@ import (
 	"sync"
 	"time"
 
-	"go.melnyk.org/cvt"
+	"go.melnyk.org/mansi"
 	"go.melnyk.org/spinner"
 	"golang.org/x/net/http2"
 )
@@ -122,9 +122,10 @@ func (b *Work) Init() {
 // all work is done.
 func (b *Work) Run(ctx context.Context) {
 	sctx, cancel := context.WithCancel(ctx)
-	spinner := spinner.NewSpinner(sctx, spinner.WithStyle(spinner.StyleBars))
-	fmt.Printf("%s", cvt.YellowFg)
-	spinner.Process("Testing in progress...\r")
+	spinner := spinner.NewSpinner(spinner.WithStyle(spinner.StyleBars), spinner.WithElapsedTimer())
+	fmt.Printf("%s", mansi.ColorTextYellow+mansi.CursorHide)
+	spinner.Message("Testing in progress...")
+	spinner.Process(sctx)
 	b.Init()
 	b.start = now()
 	b.report = newReport(b.writer(), b.results, b.Output, b.N)
@@ -134,7 +135,7 @@ func (b *Work) Run(ctx context.Context) {
 	}()
 	b.runWorkers(ctx)
 	cancel()
-	fmt.Printf("\r%s%s\r", cvt.EraseLine, cvt.ResetColor)
+	fmt.Printf("\r%s", mansi.LineEraseToEnd+mansi.ResetColor+mansi.CursorShow)
 	b.finish()
 }
 

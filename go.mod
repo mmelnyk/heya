@@ -1,14 +1,11 @@
 module go.melnyk.org/heya
 
 require (
-	go.melnyk.org/cvt v0.0.0-20180815021515-f3949ace0e2f
-	go.melnyk.org/spinner v0.0.0-20220609203721-9eab6b00be32
-	golang.org/x/net v0.0.0-20220607020251-c690dde0001d
+	go.melnyk.org/mansi v0.1.0
+	go.melnyk.org/spinner v0.0.0-20220713025043-bd702117845b
+	golang.org/x/net v0.0.0-20220708220712-1185a9018129
 )
 
-require (
-	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
-	golang.org/x/text v0.3.7 // indirect
-)
+require golang.org/x/text v0.3.7 // indirect
 
 go 1.18
