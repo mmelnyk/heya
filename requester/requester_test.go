@@ -74,9 +74,10 @@ func TestQps(t *testing.T) {
 }
 
 func TestRequest(t *testing.T) {
-	var uri, contentType, some, auth string
+	var uri, contentType, some, method, auth string
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		uri = r.RequestURI
+		method = r.Method
 		contentType = r.Header.Get("Content-type")
 		some = r.Header.Get("X-some")
 		auth = r.Header.Get("Authorization")
@@ -98,6 +99,9 @@ func TestRequest(t *testing.T) {
 	w.Run(context.Background())
 	if uri != "/" {
 		t.Errorf("Uri is expected to be /, %v is found", uri)
+	}
+	if method != "GET" {
+		t.Errorf("Method is expected to be GET, got %v", method)
 	}
 	if contentType != "text/html" {
 		t.Errorf("Content type is expected to be text/html, %v is found", contentType)

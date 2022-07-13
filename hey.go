@@ -58,8 +58,11 @@ var (
 	t = flag.Int("t", 20, "")
 	z = flag.Duration("z", 0, "")
 
+	k    = flag.Bool("k", false, "")
 	h2   = flag.Bool("h2", false, "")
 	cpus = flag.Int("cpus", runtime.GOMAXPROCS(-1), "")
+
+	tlsResume = flag.Bool("tls-session-resume", false, "")
 
 	disableCompression = flag.Bool("disable-compression", false, "")
 	disableKeepAlives  = flag.Bool("disable-keepalive", false, "")
@@ -92,10 +95,13 @@ Options:
   -U  User-Agent, defaults to version "heya/0.3.0".
   -a  Basic authentication, username:password.
   -x  HTTP Proxy address as host:port.
+  -k  Allow insecure server connections when using TLS.
   -h2 Enable HTTP/2.
 
   -host	HTTP Host header.
-
+ 
+  -tls-session-resume   Enable TLS session resumption.
+  
   -disable-compression  Disable compression.
   -disable-keepalive    Disable keep-alive, prevents re-use of TCP
                         connections between different HTTP requests.
@@ -234,9 +240,11 @@ func main() {
 		C:                  conc,
 		QPS:                q,
 		Timeout:            *t,
+		TLSResume:          *tlsResume,
 		DisableCompression: *disableCompression,
 		DisableKeepAlives:  *disableKeepAlives,
 		DisableRedirects:   *disableRedirects,
+		K:                  *k,
 		H2:                 *h2,
 		ProxyAddr:          proxyURL,
 		Output:             *output,

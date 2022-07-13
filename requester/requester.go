@@ -36,7 +36,7 @@ import (
 )
 
 // Max size of the buffer of result channel.
-const maxResult = 1000000
+const maxResult = 32000000
 const maxIdleConn = 500
 
 type result struct {
@@ -68,8 +68,14 @@ type Work struct {
 	// C is the concurrency level, the number of concurrent workers to run.
 	C int
 
+	// K is an option to allow insecure server connections when using TLS.
+	K bool
+
 	// H2 is an option to make HTTP/2 requests
 	H2 bool
+
+	// TLSResume is used to decide whether TLS session resumption is enabled between requests
+	TLSResume bool
 
 	// Timeout in seconds.
 	Timeout int
@@ -254,10 +260,17 @@ func (b *Work) runWorkers(ctx context.Context) {
 		hostName = b.Request.Host
 	}
 
+	var tlsCache tls.ClientSessionCache
+
+	if b.TLSResume {
+		tlsCache = tls.NewLRUClientSessionCache(1) // we only have one target
+	}
+
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
+			InsecureSkipVerify: b.K,
 			ServerName:         hostName,
+			ClientSessionCache: tlsCache,
 		},
 		MaxIdleConnsPerHost: min(b.C, maxIdleConn),
 		DisableCompression:  b.DisableCompression,

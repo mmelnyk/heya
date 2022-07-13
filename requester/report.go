@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"sort"
 	"time"
 )
@@ -27,8 +28,8 @@ const (
 	barChar = "■"
 )
 
-// We report for max 1M results.
-const maxRes = 1000000
+// We report for max 32M results.
+const maxRes = 32000000
 
 type report struct {
 	avgTotal float64
@@ -224,19 +225,13 @@ func (r *report) snapshot() Report {
 
 func (r *report) latencies() []LatencyDistribution {
 	pctls := []int{10, 25, 50, 75, 90, 95, 99}
-	data := make([]float64, len(pctls))
-	j := 0
-	for i := 0; i < len(r.lats) && j < len(pctls); i++ {
-		current := i * 100 / len(r.lats)
-		if current >= pctls[j] {
-			data[j] = r.lats[i]
-			j++
-		}
-	}
 	res := make([]LatencyDistribution, len(pctls))
-	for i := 0; i < len(pctls); i++ {
-		if data[i] > 0 {
-			res[i] = LatencyDistribution{Percentage: pctls[i], Latency: data[i]}
+	for i, pctl := range pctls {
+		j := int(math.Ceil(float64(pctl)/100*float64(len(r.lats)))) - 1
+		lat := r.lats[j]
+		res[i] = LatencyDistribution{
+			Percentage: pctl,
+			Latency:    lat,
 		}
 	}
 	return res
