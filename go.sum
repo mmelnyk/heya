@@ -1,12 +1,8 @@
 go.melnyk.org/mansi v0.1.0 h1:aIKkJsEqOs/o4Hk4FvXaci24JFLf7mwASteXmPNC+og=
 go.melnyk.org/mansi v0.1.0/go.mod h1:+OUZ09njOYvMvEQFmVOvOgrzC9nybFmmhY/4E/eCs0s=
-go.melnyk.org/spinner v0.0.0-20220609203721-9eab6b00be32 h1:sAm6WENE7cuJ7n8afHB6oX6FriiuefjwU/H5fzNC6vo=
-go.melnyk.org/spinner v0.0.0-20220609203721-9eab6b00be32/go.mod h1:PdWypEk9zVLV67fCsKLFX0uZ4rhUbpgBkEFUOFu4rMc=
 go.melnyk.org/spinner v0.0.0-20220713025043-bd702117845b h1:I0CWtdsemGlBpwK3AB/NlUAl5rpu92umfK1kkWQLWE8=
 go.melnyk.org/spinner v0.0.0-20220713025043-bd702117845b/go.mod h1:yI5f9Ca4R3IfbHpkPcww07Gx+iMw+AjTW/mIAvAH1bI=
-golang.org/x/net v0.0.0-20220607020251-c690dde0001d h1:4SFsTMi4UahlKoloni7L4eYzhFRifURQLw+yv0QDCx8=
-golang.org/x/net v0.0.0-20220607020251-c690dde0001d/go.mod h1:XRhObCWvk6IyKnWLug+ECip1KBveYUHfp+8e9klMJ9c=
-golang.org/x/net v0.0.0-20220708220712-1185a9018129 h1:vucSRfWwTsoXro7P+3Cjlr6flUMtzCwzlvkxEQtHHB0=
-golang.org/x/net v0.0.0-20220708220712-1185a9018129/go.mod h1:XRhObCWvk6IyKnWLug+ECip1KBveYUHfp+8e9klMJ9c=
-golang.org/x/text v0.3.7 h1:olpwvP2KacW1ZWvsR7uQhoyTYvKAupfQrRGBFM352Gk=
-golang.org/x/text v0.3.7/go.mod h1:u+2+/6zg+i71rQMx5EYifcz6MCKuco9NR6JIITiCfzQ=
+golang.org/x/net v0.17.0 h1:pVaXccu2ozPjCXewfr1S7xza/zcXTity9cCdXQYSjIM=
+golang.org/x/net v0.17.0/go.mod h1:NxSsAGuq816PNPmqtQdLE42eU2Fs7NoRIZrHJAlaCOE=
+golang.org/x/text v0.13.0 h1:ablQoSUd0tRdKxZewP80B+BaqeKJuVhuRxj/dkrun3k=
+golang.org/x/text v0.13.0/go.mod h1:TvPlkZtksWOMsz7fbANvkp4WM8x/WCo/om8BMLbz+aE=
